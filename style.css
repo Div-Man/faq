@@ -1,0 +1,163 @@
+html, body, ul {padding: 0; margin: 0;}
+body {
+	background: #F3F3F5;
+}
+ul, li {list-style: none;}
+a {text-decoration: none;}
+
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+
+.main-auth {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+header {
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 30px;
+	padding-bottom: 30px;
+	background: #A9C056;
+	color: white;
+	text-transform: uppercase;
+	text-align: center;
+	font-size: 25px;
+}
+
+
+
+.header {
+	max-width: 1000px;
+	margin: 0 auto;
+}
+
+.new-question {
+	max-width: 1000px;
+	margin: 0 auto;
+	padding-top: 30px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.user {
+	width: 455px;
+}
+
+.user p {margin: 0;}
+
+.user p:nth-child(1) {
+	float: left;
+}
+
+.user p:nth-child(2) {
+	float: right;
+}
+textarea {margin-top: 20px; width: 450px;}
+
+.new-question > p {
+	color: #A9C056;
+	font-weight: bold;
+}
+
+section {
+	margin-top: 50px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.content {
+	max-width: 1000px;
+	margin: 0 auto;
+}
+
+.category {
+	background: #4E5359;
+	width: 20%;
+	float: left;
+}
+
+.category li {
+	display: block;
+	padding: 10px;
+	border-bottom: 1px solid #555B61;
+}
+
+.category li:hover {
+	background: #555B61;
+}
+
+.category  a {
+	color: white;
+	display: block;
+	
+}
+
+.questions {
+	width: 75%;
+	float: right;
+	
+}
+.none{display: none;}
+
+ ul{
+
+   font-size: 18px;
+ }
+ 
+ .item{
+   margin-bottom: 10px;  
+ }
+ 
+ .item_title{
+   position: relative;
+   z-index:2;
+   font-size: 25px;
+ }
+
+
+.item_title span{
+  display: inline-block;
+  position: absolute;
+  top:19px;
+  right:20px;
+  width: 25px;
+  height: 25px;
+  background: url('arrov2.png') no-repeat;
+}
+ 
+.submenu:before{
+    content: '';
+    display: block;
+    padding-top: 35px;
+}
+
+
+.submenu{
+	color: #6C7D8E;
+	position: relative;
+	top:-40px;
+	left:0;
+	z-index:1;
+	background: white;
+}
+  
+ .item .item_title{
+  background: white;
+  color: #A9C056;
+}
+
+
+.item_title, .submenu{
+  padding: 13px 20px;
+}
+
+.item_title:hover{
+  cursor: pointer;
+}
