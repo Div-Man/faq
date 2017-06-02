@@ -20,14 +20,7 @@ class FaqController {
 		}
 	}
 	
-	function getFormLogon() {
-		echo $this->render('faq/auth.php');
-	}
-	
-	function getLogon($login, $password) {
-		$logon = $this->model->logon($login, $password);
-	}
-	
+
 	function getFormInterfaceAdmin($id) {
 		$listAdmin = $this->model->getListAdmin();
 		$cat = $this->model->getCategory();
@@ -48,16 +41,8 @@ class FaqController {
 	}
 	
 	
-	function setNewAdmin($login, $password) {
-		$newAdmin = $this->model->newAdmin($login, $password);
-	}
-	
-	function getUpdatePass($newPass, $admin) {
-		$pass = $this->model->newPassword($newPass, $admin);
-	}
-	
 	function getDeleteUser($id){
-		$del = $this->model->deleteUser($id);
+		$del = $this->modelUser->deleteUser($id);
 	}
 	
 	function getDeleteQuestion($delId) {
@@ -65,7 +50,7 @@ class FaqController {
 	}
 	
 	function getExit() {
-		$this->model->adminExit();
+		$this->modelUser->adminExit();
 	}
 	
 	function getDeleteCategoryAndQuestion($id) {
@@ -87,27 +72,44 @@ class FaqController {
 	}
 	
 	function getAddQuestion($name, $email, $text, $cat) {
-		$question = $this->model->addQuestion($name, $email, $text, $cat);
-	}
-	
-	function getNewCategory($title){
-		$new = $this->model->newCategory($title);
-	}
-	
-	function getNewName($questionId, $name) {
-		$this->model->NewName($questionId, $name);
+		if($cat == 0) {
+			die('<p>Выберите категорию</p>');
+		}
+		if(!empty($name) && !empty($email) && !empty($text) && !empty($cat)) {
+			$question = $this->model->addQuestion($name, $email, $text, $cat);
+		}
+		else {
+			die('<p>Заполните все поля</p>');
+		}
 	}
 	
 	function getEditQuestion($questionId, $question) {
-		$this->model->editQuestion($questionId, $question);
+		if(empty($question)) {
+			echo '<p>Введите вопрос</p>';
+		}
+		else {
+			$this->model->editQuestion($questionId, $question);
+		}
 	}
 	
 	function getEditAnswer($questionId, $answer) {
-		$this->model->editAnswer($questionId, $answer);
+		if(empty($answer)) {
+			echo '<p>Введите ответ</p>';
+		}
+		else {
+			$this->model->editAnswer($questionId, $answer);
+		}
 	}
 	
 	function getEditCategory($category, $id) {
-		$this->model->editCategory($category, $id);
+		if($category == 0) {
+			echo '<p>Выберите категорию</p>';
+			return false;
+		}
+		else {
+			$this->model->editCategory($category, $id);
+		}
+		
 	}
 	
 	
