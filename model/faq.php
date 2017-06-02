@@ -2,34 +2,10 @@
 
 class Faq {
 	private $db = null;
-	
 	function __construct ($db) {
 		$this->db = $db;
 	}
-	
-	function logon($l, $p) {
-		
-		$login = strip_tags(trim($l));
-		$password = strip_tags(trim($p));
-		
-		
-		$user = "SELECT `login`, `password` FROM users WHERE login = '" . $login ."' AND password = '". $password ."'";
-		
-		$resUser = $this->db->prepare($user);
-		$resUser->execute();
-		$resUser2 = $resUser->fetchAll();
-		
-		if(count($resUser2) === 0){
-			echo 'Неверный логин или пароль';
-		}
-		
-		else {
-			$_SESSION['user'] = $login;
-			header('Location: ?interface-admin=1');
-		}
-		
-	}
-	
+
 	function getListAdmin() {
 		$sql = "SELECT login, password, id FROM users";
 		$allUser = $this->db->query($sql);
@@ -37,59 +13,24 @@ class Faq {
 		return $allUser->fetchAll();
 	}
 	
-	function newAdmin($l, $p) {
-		$login = strip_tags(trim($l));
-		$password = strip_tags(trim($p));
-		
-		$userExists = "SELECT login FROM users WHERE login = '".$login."'";
-		$queryUser = $this->db->query($userExists);
-		$queryUser->setFetchMode(PDO::FETCH_ASSOC);
-		
-		if((count($queryUser->fetchAll()) > 0)) {
-			echo 'Такой пользователь уже существует';
-			die();
-		}
-		
-		else {
-			$newAdmin = "INSERT INTO users(login, password) VALUES('".$login."', '".$password."')";
-			$newUserPrepare = $this->db->prepare($newAdmin);
-			$newUserPrepare->execute();
-			echo 'Администратор добавлен';
-		}
-	}
-	
-	function newPassword($newPass, $admin) {
-		$sql = "UPDATE users SET `password` = '".$newPass."' WHERE login = '".$admin."'";
-		$setPassword = $this->db->prepare($sql);
-		$setPassword->execute();
-		echo 'Пароль изменён';
-		
-	}
-	
-	function deleteUser($id) {
-		$sql = "DELETE FROM users WHERE id = '".$id."'";
-		$del = $this->db->prepare($sql);
-		$del->execute();
-		header('Location: ?interface-admin=1&list-admin=1');
-	}
-	
 	function deleteQuestion($delId) {
-		$sql = "DELETE FROM question WHERE id = '".$delId."'";
+		$sql = "DELETE FROM question WHERE id = :id";
 		$del = $this->db->prepare($sql);
+		$del->bindValue(':id', $delId, PDO::PARAM_INT);
 		$del->execute();
-	}
-	
-	function adminExit() {
-		unset($_SESSION['user']);
-		session_destroy();
+		header('Location: ?interface-admin=1&showQuestion='.$_GET['showQuestion']);
 	}
 	
 	function deleteCategoryAndQuestion($id) {
-		$delCategory = "DELETE FROM category WHERE id = '".$id."'";
-		$delQuestion = "DELETE FROM question WHERE cat_id = '".$id."'";
+		$delCategory = "DELETE FROM category WHERE id = :id";
 		$delCat = $this->db->prepare($delCategory);
-		$delCat->execute();
+		$delCat->bindValue(':id', $id, PDO::PARAM_INT);
+		
+		$delQuestion = "DELETE FROM question WHERE cat_id = :id";
 		$delQuest = $this->db->prepare($delQuestion);
+		$delQuest->bindValue(':id', $id, PDO::PARAM_INT);
+		
+		$delCat->execute();
 		$delQuest->execute();
 		header('Location: ?interface-admin=1&list-category=1');
 	}
@@ -102,7 +43,7 @@ class Faq {
 			question.status, 
 			question.answer, 
 			question.user_email  
-			FROM question, category WHERE category.id = '".$id."'  AND question.cat_id = '".$id."' GROUP BY question.name";
+			FROM question INNER JOIN category WHERE category.id = '".$id."'  AND question.cat_id = '".$id."' GROUP BY question.name";
 			
 		$getQuestion = $this->db->query($sql);
 		$getQuestion->setFetchMode(PDO::FETCH_ASSOC);
@@ -116,7 +57,7 @@ class Faq {
 									question.data, 
 									question.status, 
 									question.answer, 
-									question.user_email FROM question, 
+									question.user_email FROM question INNER JOIN 
 									category 
 				WHERE question.answer = '' AND category.id = question.cat_id GROUP BY question.name ORDER BY question.data";
 			
@@ -126,14 +67,16 @@ class Faq {
 	}
 	
 	function hiddenQuestion($id) {
-		$sql = "UPDATE question SET `status` = 2 WHERE id = ".$id;
+		$sql = "UPDATE question SET `status` = 2 WHERE id = :id";
 		$hidd = $this->db->prepare($sql);
+		$hidd->bindValue(':id', $id, PDO::PARAM_INT);
 		$hidd->execute();
 	}
 	
 	function questionShow($id) {
-		$sql = "UPDATE question SET `status` = 1 WHERE id = ".$id;
+		$sql = "UPDATE question SET `status` = 1 WHERE id = :id";
 		$show = $this->db->prepare($sql);
+		$show->bindValue(':id', $id, PDO::PARAM_INT);
 		$show->execute();
 	}
 	
@@ -180,116 +123,74 @@ class Faq {
 	}
 	
 	function addQuestion($name, $email, $text, $cat) {
-		
-		$dataQuestion = [];
-		
-		$input_name = trim(htmlspecialchars(strip_tags($name)));
-		$dataQuestion[]=$input_name;
-		
 		$input_email = filter_var($email, FILTER_VALIDATE_EMAIL);
 		if($input_email === false) {
 			echo 'Введи правильно email';
 			die();
 		}
-		$dataQuestion[]=$input_email;
 		
-		$input_text = trim(htmlspecialchars(strip_tags($text)));
-		$dataQuestion[]=$input_text;
+		$date = date("Y-m-d H:i:s");
 		
-		if((int)$cat > 0) {
-			$input_cat = (int)$cat;
-			$dataQuestion[] = $input_cat;
-		}
-		
-		else {
-			echo 'Выберите категорию';
-		}
-	
-		if(count($dataQuestion) === 4) {
-			$date = date("Y-m-d H:i:s");
-			$sql = "INSERT INTO question (name, cat_id, user_name, data, status, answer, user_email) VALUES(
-																			'".$dataQuestion[2]."',
-																			'".$dataQuestion[3]."',
-																			'".$dataQuestion[0]."',
-																			'".$date."',
+		$sql = "INSERT INTO question (name, cat_id, user_name, data, status, answer, user_email) VALUES(
+																			:name,
+																			:cat,
+																			:userName,
+																			:date,
 																			'0',
 																			'". null ."',
-																			'".$dataQuestion[1]."'
+																			:email
 																			)";
-			$newQuestion = $this->db->prepare($sql);
-			$newQuestion->execute();
-			echo 'Вопрос появится, после того, как на него ответит администратор';															
-		}
-	}
-	
-	function newCategory($name) {
-		$title = trim(htmlspecialchars(strip_tags($name)));
-		$sql = "INSERT INTO category(name) VALUES('".$title."')";
-		$newCat = $this->db->prepare($sql);
-		$newCat->execute();
-	}
-	
-	function newName($questionId, $name) {
-		if(empty($name)) {
-			echo '<p>Введите имя</p>';
-		}
-		else {
-			$idQuest = trim(htmlspecialchars(strip_tags($questionId)));
-			$setRename = trim(htmlspecialchars(strip_tags($name)));
 		
-			$sql = "UPDATE question SET `user_name` = '".$setRename."' WHERE id = '".$idQuest."'";
-			$setName = $this->db->prepare($sql);
-			$setName->execute();
-			header('Location: ?interface-admin=1&showQuestion='. $_GET['showQuestion']);
-		}
+		$sth = $this->db->prepare($sql);
+		$sth->bindValue(':name', $text, PDO::PARAM_STR);
+		$sth->bindValue(':cat', $cat, PDO::PARAM_INT);
+		$sth->bindValue(':userName', $name, PDO::PARAM_STR);
+		$sth->bindValue(':date', $date, PDO::PARAM_INT);
+		$sth->bindValue(':email', $input_email, PDO::PARAM_STR);
+		$sth->execute();
+		die ('<p>Вопрос появится, после того, как на него ответит администратор</p>');															
 	}
 	
 	function editQuestion($questionId, $question) {
-		if(empty($question)) {
-			echo '<p>Введите вопрос</p>';
-		}
-		else {
-			$idQuest = trim(htmlspecialchars(strip_tags($questionId)));
-			$setQuestion = trim(htmlspecialchars(strip_tags($question)));
-		
-			$sql = "UPDATE question SET `name` = '".$setQuestion."' WHERE id = '".$idQuest."'";
-			
-			$setQuestion = $this->db->prepare($sql);
-			$setQuestion->execute();
+		$sql = "UPDATE question SET `name` = :setQuestion WHERE id = :idQuest";
+		$setQuestion = $this->db->prepare($sql);
+		$setQuestion->bindValue(':idQuest', $questionId, PDO::PARAM_INT);
+		$setQuestion->bindValue(':setQuestion', $question, PDO::PARAM_STR);
+		$setQuestion->execute();
+		if($_GET['showQuestion']) {
 			header('Location: ?interface-admin=1&showQuestion='. $_GET['showQuestion']);
+		}
+		if($_GET['all-question']) {
+			header('Location: ?interface-admin=1&all-question=1');
 		}
 	}
 	
 	function editAnswer($questionId, $answer) {
-		if(empty($answer)) {
-			echo '<p>Введите ответ</p>';
-		}
-		else {
-			$idQuest = trim(htmlspecialchars(strip_tags($questionId)));
-			$setAnswer = trim(htmlspecialchars(strip_tags($answer)));
-		
-			$sql = "UPDATE question SET `answer` = '".$setAnswer."' WHERE id = '".$idQuest."'";
-			$sql2 = "UPDATE question SET `status` = '1' WHERE id = '".$idQuest."'";
+		$sql = "UPDATE question SET `answer` = :setAnswer WHERE id = :idQuest";
+		$sql2 = "UPDATE question SET `status` = '1' WHERE id = :idQuest";
 			
+		$setAnswer = $this->db->prepare($sql);
+		$setAnswer->bindValue(':idQuest', $questionId, PDO::PARAM_INT);
+		$setAnswer->bindValue(':setAnswer', $answer, PDO::PARAM_INT);
+		$setAnswer->execute();
 			
-			$setAnswer = $this->db->prepare($sql);
-			$setAnswer->execute();
+		$setStatus = $this->db->prepare($sql2);
+		$setStatus->bindValue(':idQuest', $questionId, PDO::PARAM_INT);
+		$setStatus->execute();
 			
-			$setStatus = $this->db->prepare($sql2);
-			$setStatus->execute();
-			
+		if($_GET['showQuestion']) {
 			header('Location: ?interface-admin=1&showQuestion='. $_GET['showQuestion']);
+		}
+		if($_GET['all-question']) {
+			header('Location: ?interface-admin=1&all-question=1');
 		}
 	}
 	
 	function editCategory($category, $id) {
-		if($category == 0) {
-			echo '<p>Выберите категорию</p>';
-			return false;
-		}
-		
-		$sql = "UPDATE question SET `cat_id` = '".$category."' WHERE id = '".$id."'";
+		$sql = "UPDATE question SET `cat_id` = :category WHERE id = :id";
 		$setCategory = $this->db->prepare($sql);
+		$setCategory->bindValue(':category', $category, PDO::PARAM_INT);
+		$setCategory->bindValue(':id', $id, PDO::PARAM_INT);
 		$setCategory->execute();
 		header('Location: ?interface-admin=1&showQuestion='. $_GET['showQuestion']);
 	}
