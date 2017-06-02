@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 		die();
 	}
 	if(!empty($_GET['admin'])) {
-		$faq->formLogon();
+		$user->formLogon();
 	}
 	
 	
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 	
 	if($_POST['auth']) {
-		$faq->getLogon($_POST['login'], $_POST['password']);
+		$user->getLogon($_POST['login'], $_POST['password']);
 	}
 	
 	if($_POST['createAdmin']) {
