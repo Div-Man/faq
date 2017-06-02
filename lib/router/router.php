@@ -1,8 +1,10 @@
 <?php
 
 include 'controller/faqController.php';
+include 'controller/userController.php';
 
 $faq = new faqController($db);
+$user = new UserController($db);
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
@@ -35,70 +37,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 		die();
 	}
 	if(!empty($_GET['admin'])) {
-		if(!empty($_SESSION['user'])){
-			header('Location: ?interface-admin=1');
-		}
-		if((int)$_GET['admin'] === 1) {
-			$faq->getFormLogon();
-		}
+		$faq->formLogon();
 	}
-		
+	
+	
 	if(!empty($_SESSION['user']) || empty($_SESSION['user'])) {
 		$faq->getShowCategory();
 	}
-	
-	
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	if($_POST['addQuestion']) {
-		if(!empty($_POST['name']) && !empty($_POST['email']) && !empty($_POST['text'])) {
-			$faq->getAddQuestion($_POST['name'], $_POST['email'], $_POST['text'], $_POST['category']);
-		}
-		else {
-			echo 'Заполните все поля';
-		}
+		$faq->getAddQuestion($_POST['name'], $_POST['email'], $_POST['text'], $_POST['category']);
 	}
 	
 	if($_POST['auth']) {
-		if(!empty($_POST['login']) && !empty($_POST['password'])) {
-			$faq->getLogon($_POST['login'], $_POST['password']);
-		}
-		else {
-			echo 'Заполните все поля';
-		}
+		$faq->getLogon($_POST['login'], $_POST['password']);
 	}
 	
 	if($_POST['createAdmin']) {
-		if(!empty($_POST['newAdmin']) && !empty($_POST['pass'])) {
-			$faq->setNewAdmin($_POST['newAdmin'], $_POST['pass']);
-		}
-		else {
-			echo 'Заполните все поля';
-		}
+		$user->setNewAdmin($_POST['newAdmin'], $_POST['pass']);
 	}
 	
 	if($_POST['newPass']){
-		$faq->getUpdatePass($_POST['new-password'], $_POST['name-admin']);
+		$user->getUpdatePass($_POST['new-password'], $_POST['name-admin']);
 	}
 	
 	if($_POST['createCategory']) {
-		if(!empty($_POST['title'])) {
-			$category = $_POST['title'];
-			if(iconv_strlen($category) > 0) {
-				$faq->getNewCategory($category);
-				echo '<p>Категория ' . $category . ' создана</p>';
-				echo '<p><a href="'.header('Location: ?interface-admin=1&list-category=1').'">Перейти в список категорий</a></p>';
-			}
-		}
-		
-		else {
-			echo '<p>Введите название категории</p>';
-		}
+		$user->getNewCategory($_POST['title']);
 	}
 	
 	if($_POST['renameAuthor']) {
-		$faq->getNewName($_POST['questionId'], $_POST['newName']);
+		$user->getNewName($_POST['questionId'], $_POST['newName']);
 	}
 	
 	if($_POST['renameQuestion']) {
@@ -113,5 +83,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$faq->getEditCategory($_POST['editCategory'], $_POST['idquestion']);
 	}
 }
-
-
